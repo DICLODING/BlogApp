@@ -15,7 +15,6 @@ export interface Post {
   title: string;
   author: string;
   date: string;
-  category: string;
   content?: string;
   likes?: number;
   comments?: number;
@@ -53,7 +52,6 @@ export const postsApi = {
       ...response.data,
       author: post.author,
       date: post.date,
-      category: post.category,
       content: post.content,
       likes: post.likes || 0,
       comments: post.comments || 0,
@@ -71,7 +69,6 @@ export const postsApi = {
       ...response.data,
       author: post.author,
       date: post.date,
-      category: post.category,
       content: post.content,
       likes: post.likes,
       comments: post.comments,

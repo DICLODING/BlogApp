@@ -1,9 +1,16 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { createFakeJWT } from "./jwttoken";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 
-// Interface for user data
 interface User {
   id: string;
   name: string;
@@ -11,259 +18,232 @@ interface User {
   password: string;
 }
 
+const JWT_SECRET = "hardcodedSecret"; // For demo only
+
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [error, setError] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  // Default admin user
-  const defaultUser = {
-    id: '1',
-    name: 'Mahesh Dubey',
-    email: 'mahesh@example.com',
-    password: 'mahesh123'
-  };
-
-  // Load users from localStorage on component mount
   useEffect(() => {
-    const storedUsers = localStorage.getItem('users');
+    const storedUsers = localStorage.getItem("users");
     if (storedUsers) {
       setUsers(JSON.parse(storedUsers));
     } else {
-      // Initialize with default user if no users exist
+      const defaultUser = {
+        id: "1",
+        name: "Mahesh Dubey",
+        email: "mahesh@example.com",
+        password: "mahesh123",
+      };
       setUsers([defaultUser]);
-      localStorage.setItem('users', JSON.stringify([defaultUser]));
+      localStorage.setItem("users", JSON.stringify([defaultUser]));
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (isLogin) {
-      // Login logic
-      const user = users.find(u => u.email === email && u.password === password);
-      
-      if (user) {
-        // Create a JWT token
-        const token = {
+      const user = users.find((u) => u.email === email && u.password === password);
+      if (!user) return setError("Invalid credentials");
+
+      const token = createFakeJWT(
+        {
           userId: user.id,
           name: user.name,
           email: user.email,
-          exp: new Date().getTime() + 3600000, // 1 hour expiration
-        };
-        
-        // Store token in localStorage
-        localStorage.setItem('authToken', JSON.stringify(token));
-        localStorage.setItem('LoggedIn', 'true');
-        navigate('/table');
-      } else {
-        setError('Invalid email or password');
-      }
-    } else {
-      // Check if email already exists
-      if (users.some(u => u.email === email)) {
-        setError('Email already registered');
-        return;
-      }
+          exp: Date.now() + 3600000,
+        },
+        JWT_SECRET
+      );
 
-      // Register new user
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("LoggedIn", "true");
+      navigate("/table");
+    } else {
+      if (users.some((u) => u.email === email)) return setError("Email already registered");
+
       const newUser: User = {
         id: (users.length + 1).toString(),
         name,
         email,
-        password
+        password,
       };
-      
+
       const updatedUsers = [...users, newUser];
       setUsers(updatedUsers);
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-      
-      // Auto login after registration
-      const token = {
-        userId: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        exp: new Date().getTime() + 3600000, // 1 hour expiration
-      };
-      
-      localStorage.setItem('authToken', JSON.stringify(token));
-      localStorage.setItem('LoggedIn', 'true');
-      navigate('/table');
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+      const token = createFakeJWT(
+        {
+          userId: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          exp: Date.now() + 3600000,
+        },
+        JWT_SECRET
+      );
+
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("LoggedIn", "true");
+      navigate("/table");
     }
   };
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setError('');
-    setEmail('');
-    setPassword('');
-    setName('');
+    setEmail("");
+    setPassword("");
+    setName("");
+    setError("");
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col md:flex-row bg-gradient-to-br from-blue-600 via-indigo-500 to-purple-600">
-      {/* Left side - Attractive Visual Design */}
-      <div className="w-full md:w-1/2 flex justify-center items-center p-4 md:p-8 relative overflow-hidden">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
-          <div className="absolute top-32 right-16 w-16 h-16 bg-white/10 rounded-full animate-pulse delay-1000"></div>
-          <div className="absolute bottom-20 left-20 w-24 h-24 bg-white/10 rounded-full animate-pulse delay-2000"></div>
-          <div className="absolute bottom-32 right-10 w-12 h-12 bg-white/10 rounded-full animate-pulse delay-500"></div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 relative overflow-hidden">
+      {/* Animated Background Particles */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-pulse opacity-60"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-blue-400 rounded-full animate-ping opacity-40"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-indigo-400 rounded-full animate-pulse opacity-50"></div>
+        <div className="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-violet-400 rounded-full animate-ping opacity-30"></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2.5 h-2.5 bg-purple-300 rounded-full animate-pulse opacity-40"></div>
+        <div className="absolute top-3/4 left-1/2 w-1 h-1 bg-blue-300 rounded-full animate-ping opacity-50"></div>
+      </div>
 
-        <div className="text-center relative z-10">
-          <div className="mb-8">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mx-auto text-white mb-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-5M8 12h8m-8 4h6" />
-            </svg>
-          </div>
-
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-            Blog Management System
-          </h1>
-
-          <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
-            Create, manage, and share your blog posts with the world.
-          </p>
-
-          {/* Feature highlights */}
-          <div className="grid grid-cols-1 gap-4 max-w-sm mx-auto">
-            <div className="flex items-center space-x-3 text-white/80">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <span className="text-sm">Easy Content Creation</span>
-            </div>
-
-            <div className="flex items-center space-x-3 text-white/80">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
-              <span className="text-sm">Lightning Fast Publishing</span>
-            </div>
-
-            <div className="flex items-center space-x-3 text-white/80">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <span className="text-sm">Analytics & Insights</span>
+      {/* Main Login Card */}
+      <Card className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl relative z-10 rounded-2xl hover:scale-[1.02] transition-transform duration-300">
+        <CardHeader className="text-center pb-2">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Right side - Login/Register Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8">
-        <div className="w-full max-w-md">
-          <Card className="border shadow-xl">
-            <CardHeader className="space-y-1 text-center">
-              <div className="flex justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1M19 20a2 2 0 002-2V8a2 2 0 00-2-2h-5M8 12h8m-8 4h6" />
-                </svg>
+          <CardTitle className="text-3xl font-bold text-white mb-2">
+            {isLogin ? "Welcome Back" : "Join Us"}
+          </CardTitle>
+          <CardDescription className="text-gray-300 text-base">
+            {isLogin
+              ? "Sign in to access your dashboard"
+              : "Create your account to get started"}
+          </CardDescription>
+        </CardHeader>
+
+        <form onSubmit={handleSubmit}>
+          <CardContent className="space-y-6 px-8">
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-sm backdrop-blur-sm">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {error}
+                </div>
               </div>
-              <CardTitle className="text-2xl font-bold text-gray-800">
-                {isLogin ? 'Welcome Back' : 'Create Account'}
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                {isLogin 
-                  ? 'Enter your credentials to access your account' 
-                  : 'Sign up to start creating your blog posts'}
-              </CardDescription>
-            </CardHeader>
-            
-            <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                    <span className="block sm:inline">{error}</span>
-                  </div>
-                )}
-                
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 block">Full Name</label>
-                    <input 
-                      type="text" 
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)} 
-                      required={!isLogin}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                      placeholder="John Doe" 
-                    />
-                  </div>
-                )}
-                
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 block">Email</label>
-                  <input 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                    placeholder="you@example.com" 
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <label className="text-sm font-medium text-gray-700 block">Password</label>
-                    {isLogin && (
-                      <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-800">
-                        Forgot password?
-                      </a>
-                    )}
-                  </div>
-                  <input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                    placeholder="••••••••" 
-                  />
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex flex-col space-y-4">
-                <Button
-                  type="submit"
-                  className="w-full py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-md transition-all duration-200"
-                >
-                  {isLogin ? 'Sign In' : 'Create Account'}
-                </Button>
-                
-                <div className="text-center">
-                  <button 
-                    type="button" 
-                    onClick={toggleMode} 
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
-                  >
-                    {isLogin 
-                      ? "Don't have an account? Sign up" 
-                      : "Already have an account? Sign in"}
-                  </button>
-                </div>
-              </CardFooter>
-            </form>
-          </Card>
-        </div>
-      </div>
+            )}
+
+            {!isLogin && (
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-200 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="John Doe"
+                  className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-200 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                Email Address
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-gray-200 flex items-center">
+                <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                </svg>
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+              />
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex flex-col space-y-4 px-8 pb-8 pt-4">
+            <Button
+              type="submit"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <span className="flex items-center justify-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                {isLogin ? "Sign In" : "Create Account"}
+              </span>
+            </Button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="text-sm text-gray-300 hover:text-white transition-colors duration-200 hover:underline"
+              >
+                {isLogin
+                  ? "Don't have an account? Create one"
+                  : "Already have an account? Sign in"}
+              </button>
+            </div>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
-  )
+  );
 }
 
 export default Login;
