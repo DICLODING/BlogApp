@@ -466,7 +466,7 @@ function BlogTable() {
                   <Button
                     onClick={closeModal}
                     variant="outline"
-                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 rounded-lg px-6 py-2"
+                    className="bg-white/10 border border-white/20 text-white font-bold hover:bg-white/20 rounded-lg px-6 py-2"
                   >
                     <X className="h-5 w-5 mr-2" />
                     Close
